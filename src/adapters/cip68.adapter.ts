@@ -12,12 +12,14 @@ import {
     serializeAddressObj,
     serializePlutusScript,
     UTxO,
+    Data,
+    mConStr0,
 } from "@meshsdk/core";
 import plutus from "../../contract/plutus.json";
 import { Plutus } from "../types";
 import { DECIMAL_PLACE, title } from "../constants/common.constant";
 import { APP_NETWORK_ID, APP_WALLET_ADDRESS } from "../constants/enviroments.constant";
-import { blockfrostProvider } from "../providers/cardano";
+import blockfrostProvider from "../providers/cardano/blockfrost";
 
 /**
  * @description
@@ -45,7 +47,7 @@ export class MeshAdapter {
     protected fetcher: IFetcher;
     protected elvaluator: IEvaluator;
     protected meshWallet: MeshWallet;
-    protected meshTxBuilder: MeshTxBuilder;
+    protected meshTxBuilder!: MeshTxBuilder;
 
     /**
      * @description
@@ -57,16 +59,20 @@ export class MeshAdapter {
      *
      * @param {MeshWallet} meshWallet - Active Mesh wallet instance to connect.
      */
-    constructor({ meshWallet = null!, platformAddress, platformFee }: { meshWallet: MeshWallet; platformAddress?: string; platformFee?: number }) {
+    constructor({
+        meshWallet = null!,
+        platformAddress,
+        platformFee,
+    }: {
+        meshWallet: MeshWallet;
+        platformAddress?: string;
+        platformFee?: number;
+    }) {
         this.meshWallet = meshWallet;
         this.platformAddress = platformAddress ? platformAddress : APP_WALLET_ADDRESS;
         this.platformFee = platformFee ? platformFee : DECIMAL_PLACE;
         this.fetcher = blockfrostProvider;
         this.elvaluator = blockfrostProvider;
-        this.meshTxBuilder = new MeshTxBuilder({
-            fetcher: this.fetcher,
-            evaluator: this.elvaluator,
-        });
     }
 
     /**
@@ -100,12 +106,22 @@ export class MeshAdapter {
      * such as minting, locking funds, or spending UTXOs.
      */
     public initalize = async () => {
-        this.issuerAddress = await this.meshWallet.getChangeAddress();
+        this.meshTxBuilder = new MeshTxBuilder({
+            fetcher: this.fetcher,
+            evaluator: this.elvaluator,
+        });
+        this.issuerAddress = this.meshWallet.getChangeAddress();
         this.spendCompileCode = this.readValidator(plutus as Plutus, title.spend);
         this.spendScriptCbor = applyParamsToScript(this.spendCompileCode, [
             this.platformFee,
-            mPubKeyAddress(deserializeAddress(this.issuerAddress).pubKeyHash, deserializeAddress(this.issuerAddress).stakeCredentialHash),
-            mPubKeyAddress(deserializeAddress(this.platformAddress).pubKeyHash, deserializeAddress(this.platformAddress).stakeCredentialHash),
+            mPubKeyAddress(
+                deserializeAddress(this.issuerAddress).pubKeyHash,
+                deserializeAddress(this.issuerAddress).stakeCredentialHash,
+            ),
+            mPubKeyAddress(
+                deserializeAddress(this.platformAddress).pubKeyHash,
+                deserializeAddress(this.platformAddress).stakeCredentialHash,
+            ),
         ]);
         this.spendScript = {
             code: this.spendScriptCbor,
@@ -113,7 +129,10 @@ export class MeshAdapter {
         };
         this.spendAddress = serializeAddressObj(
             scriptAddress(
-                deserializeAddress(serializePlutusScript(this.spendScript, undefined, APP_NETWORK_ID, false).address).scriptHash,
+                deserializeAddress(
+                    serializePlutusScript(this.spendScript, undefined, APP_NETWORK_ID, false)
+                        .address,
+                ).scriptHash,
                 deserializeAddress(this.platformAddress).stakeCredentialHash,
                 false,
             ),
@@ -123,9 +142,18 @@ export class MeshAdapter {
         this.mintCompileCode = this.readValidator(plutus as Plutus, title.mint);
         this.mintScriptCbor = applyParamsToScript(this.mintCompileCode, [
             this.platformFee,
-            mPubKeyAddress(deserializeAddress(this.issuerAddress).pubKeyHash, deserializeAddress(this.issuerAddress).stakeCredentialHash),
-            mPubKeyAddress(deserializeAddress(this.platformAddress).pubKeyHash, deserializeAddress(this.platformAddress).stakeCredentialHash),
-            mPubKeyAddress(deserializeAddress(this.spendAddress).scriptHash, deserializeAddress(this.spendAddress).stakeCredentialHash),
+            mPubKeyAddress(
+                deserializeAddress(this.issuerAddress).pubKeyHash,
+                deserializeAddress(this.issuerAddress).stakeCredentialHash,
+            ),
+            mPubKeyAddress(
+                deserializeAddress(this.platformAddress).pubKeyHash,
+                deserializeAddress(this.platformAddress).stakeCredentialHash,
+            ),
+            mPubKeyAddress(
+                deserializeAddress(this.spendAddress).scriptHash,
+                deserializeAddress(this.spendAddress).stakeCredentialHash,
+            ),
         ]);
         this.mintScript = {
             code: this.mintScriptCbor,
@@ -159,9 +187,12 @@ export class MeshAdapter {
     }> => {
         const utxos = await this.meshWallet.getUtxos();
         const collaterals =
-            (await this.meshWallet.getCollateral()).length === 0 ? [await this.getCollateral()] : await this.meshWallet.getCollateral();
+            (await this.meshWallet.getCollateral()).length === 0
+                ? [await this.getCollateral()]
+                : await this.meshWallet.getCollateral();
         const walletAddress = await this.meshWallet.getChangeAddress();
-        if (!utxos || utxos.length === 0) throw new Error("No UTXOs found in getWalletForTx method.");
+        if (!utxos || utxos.length === 0)
+            throw new Error("No UTXOs found in getWalletForTx method.");
 
         if (!collaterals || collaterals.length === 0) this.meshWallet.createCollateral();
 
@@ -250,23 +281,18 @@ export class MeshAdapter {
         })[0];
     };
 
-    protected metadataToCip68 = (metadata: any): any => {
-        switch (typeof metadata) {
-            case "object":
-                if (metadata instanceof Array) {
-                    return metadata.map((item) => this.metadataToCip68(item));
-                }
-                const metadataMap = new Map();
-                const keys = Object.keys(metadata);
-                keys.forEach((key) => {
-                    metadataMap.set(key, this.metadataToCip68(metadata[key]));
-                });
-                return {
-                    alternative: BigInt(0),
-                    fields: [metadataMap, BigInt(1_000_000)],
-                };
-            default:
-                return metadata;
-        }
+    /**
+     * @description 
+     * 
+     * @param metadata 
+     * @returns 
+     */
+    protected metadataToCip68 = (metadata: Record<string, string>): Data => {
+        const map = new Map<string, string>();
+        Object.entries(metadata).forEach(([key, value]) => {
+            map.set(key, value ?? "");
+        });
+
+        return mConStr0([map, 1]);
     };
 }

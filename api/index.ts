@@ -1,14 +1,12 @@
 import express from "express";
 import cors from "cors";
+import router from "../src/routes/index.route";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-
-app.get("/api", (req, res) => {
-    res.json({ message: "Chào từ Express chạy trên Bun!", platform: "Vercel" });
-});
+router(app)
 
 export default app;

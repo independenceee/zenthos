@@ -1,7 +1,14 @@
 import { MeshAdapter } from "../adapters/cip68.adapter";
-import { APP_NETWORK } from "../constants/enviroments.constant"
-import { deserializeAddress, mConStr0, mConStr1, stringToHex, metadataToCip68, CIP68_222, CIP68_100, hexToString } from "@meshsdk/core";
-import { koiosFetcher } from "../providers/cardano";
+import { APP_NETWORK } from "../constants/enviroments.constant";
+import {
+    deserializeAddress,
+    mConStr0,
+    mConStr1,
+    stringToHex,
+    metadataToCip68,
+    CIP68_222,
+    CIP68_100,
+} from "@meshsdk/core";
 
 export class MeshTxBuilder extends MeshAdapter {
     /**
@@ -25,7 +32,12 @@ export class MeshTxBuilder extends MeshAdapter {
         receiver?: string;
     }): Promise<string> => {
         const { utxos, walletAddress, collateral } = await this.getWalletForTx();
-        const utxo = await this.getAddressUTXOAsset(this.spendAddress, this.policyId + CIP68_100(stringToHex(assetName)));
+
+        const utxo = await this.getAddressUTXOAsset(
+            this.spendAddress,
+            this.policyId + CIP68_100(stringToHex(assetName)),
+        );
+
         const unsignedTx = this.meshTxBuilder;
 
         if (utxo) {
@@ -34,7 +46,9 @@ export class MeshTxBuilder extends MeshAdapter {
                 .mint(quantity, this.policyId, CIP68_222(stringToHex(assetName)))
                 .mintingScript(this.mintScriptCbor)
                 .mintRedeemerValue(mConStr0([]))
-                .txOut(receiver ? receiver : walletAddress, [{ unit: this.policyId + CIP68_222(stringToHex(assetName)), quantity: quantity }]);
+                .txOut(receiver ? receiver : walletAddress, [
+                    { unit: this.policyId + CIP68_222(stringToHex(assetName)), quantity: quantity },
+                ]);
         } else {
             unsignedTx
                 .mintPlutusScriptV3()
@@ -82,11 +96,20 @@ export class MeshTxBuilder extends MeshAdapter {
      *
      * @returns unsignedTx
      */
-    burn = async ({ assetName, quantity }: { assetName: string; quantity: string }): Promise<string> => {
+    burn = async ({
+        assetName,
+        quantity,
+    }: {
+        assetName: string;
+        quantity: string;
+    }): Promise<string> => {
         const { utxos, walletAddress, collateral } = await this.getWalletForTx();
 
         const unsignedTx = this.meshTxBuilder;
-        const utxoRef = await this.getAddressUTXOAsset(this.spendAddress, this.policyId + CIP68_100(stringToHex(assetName)));
+        const utxoRef = await this.getAddressUTXOAsset(
+            this.spendAddress,
+            this.policyId + CIP68_100(stringToHex(assetName)),
+        );
 
         console.log(utxoRef);
 
@@ -94,7 +117,10 @@ export class MeshTxBuilder extends MeshAdapter {
             throw new Error("Cannot find proposal from Treasury");
         }
 
-        const utxoUser = await this.getAddressUTXOAssets(walletAddress, this.policyId + CIP68_222(stringToHex(assetName)));
+        const utxoUser = await this.getAddressUTXOAssets(
+            walletAddress,
+            this.policyId + CIP68_222(stringToHex(assetName)),
+        );
 
         const amount = utxoUser.reduce((amount, utxos) => {
             return (
@@ -163,12 +189,21 @@ export class MeshTxBuilder extends MeshAdapter {
      * @param txHash - string
      * @returns
      */
-    update = async ({ assetName, metadata }: { assetName: string; metadata: Record<string, string> }): Promise<string> => {
+    update = async ({
+        assetName,
+        metadata,
+    }: {
+        assetName: string;
+        metadata: Record<string, string>;
+    }): Promise<string> => {
         const { utxos, walletAddress, collateral } = await this.getWalletForTx();
 
         const unsignedTx = this.meshTxBuilder;
 
-        const utxoRef = await this.getAddressUTXOAsset(this.spendAddress, this.policyId + CIP68_100(stringToHex(assetName)));
+        const utxoRef = await this.getAddressUTXOAsset(
+            this.spendAddress,
+            this.policyId + CIP68_100(stringToHex(assetName)),
+        );
 
         if (!utxoRef) {
             throw new Error("No Reference Asset Exists");
