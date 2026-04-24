@@ -29,7 +29,7 @@ import blockfrostProvider from "../providers/cardano/blockfrost";
  * - Handling wallet UTxOs and collaterals
  * - Preparing data for transaction building
  */
-export class MeshAdapter {
+export class Cip68Adapter {
     public policyId!: string;
     public platformFee: number;
     public spendAddress!: string;

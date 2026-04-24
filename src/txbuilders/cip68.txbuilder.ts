@@ -1,4 +1,4 @@
-import { MeshAdapter } from "../adapters/cip68.adapter";
+import { Cip68Adapter } from "../adapters/cip68.adapter";
 import { APP_NETWORK } from "../constants/enviroments.constant";
 import {
     deserializeAddress,
@@ -10,7 +10,7 @@ import {
     CIP68_100,
 } from "@meshsdk/core";
 
-export class MeshTxBuilder extends MeshAdapter {
+export class Cip68TxBuilder extends Cip68Adapter {
     /**
      * @method Mint
      * @description Mint Asset (NFT/Token) with CIP68

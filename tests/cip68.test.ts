@@ -1,8 +1,9 @@
 import { MeshWallet } from "@meshsdk/core";
-import { MeshTxBuilder } from "../src/txbuilders/cip68.txbuilder";
+import { Cip68TxBuilder } from "../src/txbuilders/cip68.txbuilder";
 import { APP_MNEMONIC, APP_NETWORK, APP_NETWORK_ID } from "../src/constants/enviroments.constant";
-import { DECIMAL_PLACE } from "../src/constants/common.constant";
+
 import blockfrostProvider from "../src/providers/cardano/blockfrost";
+import * as jest from "jest";
 
 describe("Open source dynamic assets (Token/NFT) generator (CIP68).", function () {
     let meshWallet: MeshWallet;
@@ -24,13 +25,13 @@ describe("Open source dynamic assets (Token/NFT) generator (CIP68).", function (
 
     test("Mint", async function () {
         // return;
-        const meshTxBuilder: MeshTxBuilder = new MeshTxBuilder({
+        const cip68TxBuilder: Cip68TxBuilder = new Cip68TxBuilder({
             meshWallet: meshWallet,
         });
 
-        await meshTxBuilder.initalize();
+        await cip68TxBuilder.initalize();
 
-        const unsignedTx: string = await meshTxBuilder.mint({
+        const unsignedTx: string = await cip68TxBuilder.mint({
             assetName: "Aiken Course 2010",
             quantity: "1",
             metadata: {
@@ -54,12 +55,12 @@ describe("Open source dynamic assets (Token/NFT) generator (CIP68).", function (
     test("Burn", async function () {
         return;
 
-        const meshTxBuilder: MeshTxBuilder = new MeshTxBuilder({
+        const cip68TxBuilder: Cip68TxBuilder = new Cip68TxBuilder({
             meshWallet: meshWallet,
         });
-        await meshTxBuilder.initalize();
+        await cip68TxBuilder.initalize();
 
-        const unsignedTx: string = await meshTxBuilder.burn({
+        const unsignedTx: string = await cip68TxBuilder.burn({
             assetName: "Aiken Course 2030",
             quantity: "-1",
         });
@@ -77,12 +78,12 @@ describe("Open source dynamic assets (Token/NFT) generator (CIP68).", function (
     test("Update", async function () {
         return;
 
-        const meshTxBuilder: MeshTxBuilder = new MeshTxBuilder({
+        const cip68TxBuilder: Cip68TxBuilder = new Cip68TxBuilder({
             meshWallet: meshWallet,
         });
-        await meshTxBuilder.initalize();
+        await cip68TxBuilder.initalize();
 
-        const unsignedTx: string = await meshTxBuilder.update({
+        const unsignedTx: string = await cip68TxBuilder.update({
             assetName: "Aiken Course 2024",
             metadata: {
                 name: "Aiken Course 2024",
