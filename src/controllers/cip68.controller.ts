@@ -125,13 +125,7 @@ class Cip68Controller {
 
     burn = async (request: Request, response: Response) => {
         try {
-            const { metadata, assetName, quantity, address } = request.body;
-
-            if (!metadata || typeof metadata !== "object") {
-                return response
-                    .status(400)
-                    .json({ message: "Invalid metadata format. Expected an object." });
-            }
+            const { assetName, quantity, address } = request.body;
 
             if (Number(quantity) >= 0) {
                 return response.status(400).json({
@@ -165,13 +159,14 @@ class Cip68Controller {
             const meshTxBuilder: Cip68TxBuilder = new Cip68TxBuilder({
                 meshWallet: meshWallet,
             });
+
             await meshTxBuilder.initalize();
 
             const unsignedTx: string = await meshTxBuilder.burn({
                 assetName: assetName,
                 quantity: quantity,
             });
-            response.status(200).json({
+            return response.status(200).json({
                 unsignedTx,
                 message:
                     "Transaction built successfully. Please sign and submit the transaction to mint the asset.",

@@ -2,6 +2,7 @@
     "name": "zenthos",
     "module": "api/index.ts",
     "type": "module",
+    
     "private": true,
     "devDependencies": {
         "@jest/globals": "^30.3.0",
