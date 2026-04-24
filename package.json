@@ -1,0 +1,18 @@
+{
+  "name": "zenthos",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.6.0",
+    "vercel": "^52.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@meshsdk/core": "^1.9.0-beta.102",
+    "express": "^5.2.1"
+  }
+}
