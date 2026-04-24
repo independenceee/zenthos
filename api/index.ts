@@ -1,14 +1,14 @@
-import express from 'express';
+import express from "express";
+import cors from "cors";
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 
-// Định nghĩa các route
-app.get('/api', (req, res) => {
-  res.json({ message: "Chào từ Express chạy trên Bun!", platform: "Vercel" });
+
+app.get("/api", (req, res) => {
+    res.json({ message: "Chào từ Express chạy trên Bun!", platform: "Vercel" });
 });
-
-
 
 export default app;
